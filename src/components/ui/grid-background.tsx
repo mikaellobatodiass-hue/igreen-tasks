@@ -1,67 +1,132 @@
 "use client"
 
-import { useRef, useCallback } from "react"
+import { useRef, useEffect, useCallback } from "react"
+
+const GRID = 44
+const GLOW_RADIUS = 160
+const DOT_BASE = 1.2
+const DOT_MAX = 3.5
 
 export function GridBackground({ children }: { children: React.ReactNode }) {
-  const hRef = useRef<HTMLDivElement>(null)
-  const vRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const mouseRef = useRef({ x: -9999, y: -9999 })
+  const rafRef = useRef<number>(0)
+  const pulseRef = useRef<{ x: number; y: number; t: number }[]>([])
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (hRef.current) hRef.current.style.transform = `translateY(${e.clientY}px)`
-    if (vRef.current) vRef.current.style.transform = `translateX(${e.clientX}px)`
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")!
+
+    function resize() {
+      if (!canvas) return
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+    resize()
+    window.addEventListener("resize", resize)
+
+    // Gera pontos que pulsam aleatoriamente (efeito "ativo")
+    function spawnPulse() {
+      const cols = Math.floor(window.innerWidth / GRID)
+      const rows = Math.floor(window.innerHeight / GRID)
+      pulseRef.current.push({
+        x: (Math.floor(Math.random() * cols) + 1) * GRID,
+        y: (Math.floor(Math.random() * rows) + 1) * GRID,
+        t: 0,
+      })
+      if (pulseRef.current.length > 8) pulseRef.current.shift()
+    }
+    const spawnInterval = setInterval(spawnPulse, 600)
+
+    function draw() {
+      if (!canvas) return
+      const W = canvas.width
+      const H = canvas.height
+      ctx.clearRect(0, 0, W, H)
+
+      const mx = mouseRef.current.x
+      const my = mouseRef.current.y
+
+      // Atualiza pulsos aleatórios
+      pulseRef.current = pulseRef.current
+        .map((p) => ({ ...p, t: p.t + 0.04 }))
+        .filter((p) => p.t < Math.PI)
+
+      for (let x = GRID; x < W; x += GRID) {
+        for (let y = GRID; y < H; y += GRID) {
+          const dist = Math.hypot(x - mx, y - my)
+          const mouseIntensity = dist < GLOW_RADIUS ? Math.pow(1 - dist / GLOW_RADIUS, 1.6) : 0
+
+          // Pulso aleatório neste ponto
+          const pulse = pulseRef.current.find((p) => p.x === x && p.y === y)
+          const pulseIntensity = pulse ? Math.sin(pulse.t) * 0.6 : 0
+
+          const intensity = Math.max(mouseIntensity, pulseIntensity)
+          const radius = DOT_BASE + intensity * (DOT_MAX - DOT_BASE)
+          const alpha = 0.06 + intensity * 0.94
+
+          ctx.beginPath()
+          ctx.arc(x, y, radius, 0, Math.PI * 2)
+
+          if (intensity > 0.05) {
+            // Glow nos pontos próximos ao mouse ou pulsando
+            ctx.shadowBlur = 6 + intensity * 14
+            ctx.shadowColor = "#00ff87"
+            ctx.fillStyle = `rgba(0,255,135,${alpha})`
+          } else {
+            ctx.shadowBlur = 0
+            ctx.fillStyle = "rgba(0,255,135,0.07)"
+          }
+
+          ctx.fill()
+        }
+      }
+
+      ctx.shadowBlur = 0
+      rafRef.current = requestAnimationFrame(draw)
+    }
+
+    draw()
+
+    return () => {
+      window.removeEventListener("resize", resize)
+      clearInterval(spawnInterval)
+      cancelAnimationFrame(rafRef.current)
+    }
   }, [])
 
-  const handleMouseEnter = useCallback(() => {
-    if (hRef.current) hRef.current.style.opacity = "1"
-    if (vRef.current) vRef.current.style.opacity = "1"
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    mouseRef.current = { x: e.clientX, y: e.clientY }
   }, [])
 
   const handleMouseLeave = useCallback(() => {
-    if (hRef.current) hRef.current.style.opacity = "0"
-    if (vRef.current) vRef.current.style.opacity = "0"
+    mouseRef.current = { x: -9999, y: -9999 }
   }, [])
 
   return (
     <div
       className="relative min-h-screen"
       onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      style={{
-        backgroundColor: "#050505",
-        backgroundImage: `
-          linear-gradient(to right, rgba(0,255,135,0.045) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(0,255,135,0.045) 1px, transparent 1px)
-        `,
-        backgroundSize: "44px 44px",
-      }}
+      style={{ backgroundColor: "#050505" }}
     >
-      {/* Linha horizontal neon */}
+      {/* Grade base — linhas finas */}
       <div
-        ref={hRef}
-        className="pointer-events-none fixed left-0 top-0 w-full opacity-0"
+        className="pointer-events-none fixed inset-0 z-0"
         style={{
-          height: "1px",
-          background: "linear-gradient(to right, transparent 0%, #00ff87 20%, #00ff87 80%, transparent 100%)",
-          boxShadow: "0 0 6px 2px #00ff87, 0 0 18px 4px rgba(0,255,135,0.5), 0 0 40px 8px rgba(0,255,135,0.2)",
-          transition: "opacity 120ms ease",
-          zIndex: 9,
-          willChange: "transform",
+          backgroundImage: `
+            linear-gradient(to right, rgba(0,255,135,0.035) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0,255,135,0.035) 1px, transparent 1px)
+          `,
+          backgroundSize: `${GRID}px ${GRID}px`,
         }}
       />
 
-      {/* Linha vertical neon */}
-      <div
-        ref={vRef}
-        className="pointer-events-none fixed top-0 left-0 h-full opacity-0"
-        style={{
-          width: "1px",
-          background: "linear-gradient(to bottom, transparent 0%, #00ff87 20%, #00ff87 80%, transparent 100%)",
-          boxShadow: "0 0 6px 2px #00ff87, 0 0 18px 4px rgba(0,255,135,0.5), 0 0 40px 8px rgba(0,255,135,0.2)",
-          transition: "opacity 120ms ease",
-          zIndex: 9,
-          willChange: "transform",
-        }}
+      {/* Canvas — pontos nas interseções com glow e pulsos */}
+      <canvas
+        ref={canvasRef}
+        className="pointer-events-none fixed inset-0 z-0"
       />
 
       <div className="relative z-10">{children}</div>
