@@ -31,6 +31,10 @@ const PRIORITY_LABELS: Record<string, string> = { ALTA: "Alta", MEDIA: "Média",
 function CompleteDialog({ task, onClose }: { task: Task; onClose: () => void }) {
   const complete = useCompleteTask()
   const [horas, setHoras] = useState("")
+  const [minutos, setMinutos] = useState("")
+  const totalHoras = (parseInt(horas || "0") + parseInt(minutos || "0") / 60)
+  const tempoValido = totalHoras >= 0.01
+
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="bg-[#111] border-[#2a2a2a] text-white max-w-sm">
@@ -39,15 +43,26 @@ function CompleteDialog({ task, onClose }: { task: Task; onClose: () => void }) 
         </DialogHeader>
         <p className="text-sm text-[#888] -mt-1">{task.titulo}</p>
         <div className="space-y-2 mt-2">
-          <Label className="text-[#888] text-xs uppercase tracking-wider">Horas Gastas *</Label>
-          <Input type="number" step="0.5" min="0.1" value={horas} onChange={(e) => setHoras(e.target.value)}
-            placeholder="Ex: 4.5"
-            className="bg-[#1a1a1a] border-[#2a2a2a] text-white focus:border-[#00ff87]" />
+          <Label className="text-[#888] text-xs uppercase tracking-wider">Tempo Gasto *</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="relative">
+              <Input type="number" min="0" max="999" value={horas} onChange={(e) => setHoras(e.target.value)}
+                placeholder="0"
+                className="bg-[#1a1a1a] border-[#2a2a2a] text-white focus:border-[#00ff87] pr-12" />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#555] pointer-events-none">hrs</span>
+            </div>
+            <div className="relative">
+              <Input type="number" min="0" max="59" value={minutos} onChange={(e) => setMinutos(e.target.value)}
+                placeholder="0"
+                className="bg-[#1a1a1a] border-[#2a2a2a] text-white focus:border-[#00ff87] pr-12" />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#555] pointer-events-none">min</span>
+            </div>
+          </div>
         </div>
         <div className="flex justify-end gap-3 mt-4">
           <Button variant="outline" onClick={onClose} className="border-[#2a2a2a] text-[#888] hover:text-white hover:bg-[#1a1a1a]">Cancelar</Button>
-          <Button disabled={!horas || complete.isPending}
-            onClick={() => complete.mutateAsync({ id: task.id, data: { horasGastas: parseFloat(horas) } }).then(onClose)}
+          <Button disabled={!tempoValido || complete.isPending}
+            onClick={() => complete.mutateAsync({ id: task.id, data: { horasGastas: totalHoras } }).then(onClose)}
             className="bg-[#00ff87] text-black hover:bg-[#00cc6a] font-semibold">
             {complete.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Concluir"}
           </Button>

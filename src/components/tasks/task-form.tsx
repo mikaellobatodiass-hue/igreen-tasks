@@ -44,7 +44,8 @@ export function TaskForm({ open, onClose, task }: Props) {
     quadranteEisenhower: task?.quadranteEisenhower ?? "",
     dataInicio: task?.dataInicio ? new Date(task.dataInicio).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
     dataEntrega: task?.dataEntrega ? new Date(task.dataEntrega).toISOString().split("T")[0] : "",
-    horasGastas: task?.horasGastas?.toString() ?? "",
+    horas: task?.horasGastas ? Math.floor(task.horasGastas).toString() : "",
+    minutos: task?.horasGastas ? Math.round((task.horasGastas % 1) * 60).toString() : "",
   })
 
   const isPending = create.isPending || update.isPending
@@ -59,7 +60,9 @@ export function TaskForm({ open, onClose, task }: Props) {
       quadranteEisenhower: form.quadranteEisenhower || undefined,
       dataInicio: form.dataInicio,
       dataEntrega: form.dataEntrega,
-      horasGastas: form.horasGastas ? parseFloat(form.horasGastas) : undefined,
+      horasGastas: (form.horas || form.minutos)
+        ? (parseInt(form.horas || "0") + parseInt(form.minutos || "0") / 60)
+        : undefined,
     }
     if (isEdit) {
       await update.mutateAsync({ id: task.id, data: payload })
@@ -150,10 +153,27 @@ export function TaskForm({ open, onClose, task }: Props) {
           </div>
 
           <div>
-            <Label className="text-[#888] text-xs uppercase tracking-wider">Horas Gastas</Label>
-            <Input type="number" step="0.5" min="0" value={form.horasGastas} onChange={(e) => set("horasGastas", e.target.value)}
-              placeholder="0"
-              className="mt-1 bg-[#1a1a1a] border-[#2a2a2a] text-white focus:border-[#00ff87]" />
+            <Label className="text-[#888] text-xs uppercase tracking-wider">Tempo Gasto</Label>
+            <div className="mt-1 grid grid-cols-2 gap-3">
+              <div className="relative">
+                <Input
+                  type="number" min="0" max="999" value={form.horas}
+                  onChange={(e) => set("horas", e.target.value)}
+                  placeholder="0"
+                  className="bg-[#1a1a1a] border-[#2a2a2a] text-white focus:border-[#00ff87] pr-12"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#555] pointer-events-none">hrs</span>
+              </div>
+              <div className="relative">
+                <Input
+                  type="number" min="0" max="59" value={form.minutos}
+                  onChange={(e) => set("minutos", e.target.value)}
+                  placeholder="0"
+                  className="bg-[#1a1a1a] border-[#2a2a2a] text-white focus:border-[#00ff87] pr-12"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#555] pointer-events-none">min</span>
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
