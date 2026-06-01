@@ -27,7 +27,7 @@ function KpiCard({ icon: Icon, label, value, color = "#00ff87" }: {
   icon: React.ElementType; label: string; value: number | string; color?: string
 }) {
   return (
-    <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-5 hover:border-[#00ff87]/30 transition-colors">
+    <div className="zoom-in rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-medium text-[#888] uppercase tracking-wider">{label}</span>
         <Icon className="h-4 w-4" style={{ color }} />
