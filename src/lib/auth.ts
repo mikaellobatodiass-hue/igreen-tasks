@@ -49,14 +49,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token?.id) {
         const freshUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { nome: true, email: true, cargo: true },
+          select: { id: true, nome: true, email: true, cargo: true },
         })
-        if (freshUser) {
-          session.user.name = freshUser.nome
-          session.user.email = freshUser.email
-          session.user.cargo = freshUser.cargo ?? undefined
+
+        if (!freshUser) {
+          // ID do JWT não existe mais — sessão inválida, força logout
+          return { ...session, user: { ...session.user, name: "", email: "" } }
         }
-        session.user.id = token.id as string
+
+        session.user.id = freshUser.id
+        session.user.name = freshUser.nome
+        session.user.email = freshUser.email
+        session.user.cargo = freshUser.cargo ?? undefined
       }
       return session
     },
