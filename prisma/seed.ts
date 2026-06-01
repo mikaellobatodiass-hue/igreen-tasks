@@ -10,20 +10,22 @@ async function main() {
   const senhaHash = await bcrypt.hash("igreen@2026", 12)
 
   const user = await prisma.user.upsert({
-    where: { email: "diegocativeiroleopardo@gmail.com" },
-    update: {},
+    where: { email: "mikaellobatodiass@gmail.com" },
+    update: {
+      nome: "Mikael Lobato",
+      cargo: "Desenvolvedor",
+      area: "Tecnologia",
+    },
     create: {
-      nome: "Diego Cativeiro",
-      email: "diegocativeiroleopardo@gmail.com",
+      nome: "Mikael Lobato",
+      email: "mikaellobatodiass@gmail.com",
       senha: senhaHash,
       cargo: "Desenvolvedor",
       area: "Tecnologia",
     },
   })
 
-  console.log(`✅ Usuário criado: ${user.email}`)
-  console.log(`🔑 Senha padrão: igreen@2026`)
-  console.log(`⚠️  Altere a senha no primeiro acesso.`)
+  console.log(`✅ Usuário configurado: ${user.email}`)
 }
 
 main()

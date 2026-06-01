@@ -89,7 +89,7 @@ Credenciais criadas pelo seed:
 
 | Campo | Valor |
 |---|---|
-| E-mail | `diegocativeiroleopardo@gmail.com` |
+| E-mail | `mikaellobatodiass@gmail.com` |
 | Senha | `igreen@2026` |
 
 ### 6. Inicie o servidor
