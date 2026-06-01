@@ -34,19 +34,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0a0a0a]">
-      {/* Hexagonal background */}
-      <div
-        className="absolute inset-0 opacity-20"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0-2L2 50V18L28 2l26 16v32L28 64z' fill='%2300ff87' fill-opacity='0.15'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Green horizon glow */}
-      <div className="absolute inset-x-0 top-1/2 h-px bg-[#00ff87] opacity-30 blur-sm" />
-      <div className="absolute inset-x-0 top-1/2 h-32 -translate-y-full bg-gradient-to-t from-[#00ff87]/10 to-transparent" />
-
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
       {/* Login card */}
       <div className="relative z-10 w-full max-w-md px-4">
         <div className="rounded-2xl border border-[#2a2a2a] bg-[#111]/80 p-8 shadow-2xl backdrop-blur-xl">
