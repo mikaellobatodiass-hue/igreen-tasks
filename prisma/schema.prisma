@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum TaskCategory {
+  DESENVOLVIMENTO
+  GESTAO
+  DOCUMENTACAO
+  REUNIAO
+  PESQUISA
+  OUTRO
+}
+
+enum TaskPriority {
+  ALTA
+  MEDIA
+  BAIXA
+}
+
+enum TaskStatus {
+  A_FAZER
+  EM_ANDAMENTO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum EisenhowerQuadrant {
+  Q1_URGENTE_IMPORTANTE
+  Q2_IMPORTANTE_NAO_URGENTE
+  Q3_URGENTE_NAO_IMPORTANTE
+  Q4_NAO_URGENTE_NAO_IMPORTANTE
+}
+
+enum AchievementCategory {
+  TECNICA
+  LIDERANCA
+  INOVACAO
+  PROCESSO
+  COLABORACAO
+  RESULTADO_NEGOCIO
+}
+
+enum ImpactLevel {
+  MUITO_BAIXO
+  BAIXO
+  MEDIO
+  ALTO
+  MUITO_ALTO
+}
+
+enum DevelopmentPlanStatus {
+  NAO_INICIADO
+  EM_ANDAMENTO
+  CONCLUIDO
+  PAUSADO
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  cargo     String?
+  area      String?
+  foto      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks            Task[]
+  achievements     Achievement[]
+  developmentPlans DevelopmentPlan[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Task (Demanda)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Task {
+  id                   String              @id @default(cuid())
+  titulo               String
+  descricao            String?
+  categoria            TaskCategory
+  prioridade           TaskPriority
+  status               TaskStatus          @default(A_FAZER)
+  quadranteEisenhower  EisenhowerQuadrant?
+  dataInicio           DateTime
+  dataEntrega          DateTime
+  dataConclusao        DateTime?
+  horasGastas          Float?
+  tags                 String[]            @default([])
+  evidencia            String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Uma task concluída pode gerar uma conquista
+  achievement Achievement?
+
+  @@index([userId])
+  @@index([status])
+  @@index([prioridade])
+  @@index([dataEntrega])
+  @@map("tasks")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Achievement (Conquista Profissional)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Achievement {
+  id             String              @id @default(cuid())
+  titulo         String
+  descricao      String
+  categoria      AchievementCategory
+  impacto        ImpactLevel
+  dataConquista  DateTime
+  evidencia      String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Conquista pode ter sido gerada a partir de uma task
+  taskId String? @unique
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([dataConquista])
+  @@map("achievements")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DevelopmentPlan (Plano de Desenvolvimento)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model DevelopmentPlan {
+  id        String                @id @default(cuid())
+  titulo    String
+  descricao String?
+  status    DevelopmentPlanStatus @default(NAO_INICIADO)
+  progresso Int                   @default(0) // 0 a 100 (%)
+  prazo     DateTime
+  evidencia String?
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("development_plans")
+}

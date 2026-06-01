@@ -1,0 +1,22 @@
+services:
+  igreen_db:
+    image: postgres:17-alpine
+    container_name: igreen_tasks_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: igreen
+      POSTGRES_PASSWORD: igreen_secret
+      POSTGRES_DB: igreen_tasks
+    ports:
+      - "5435:5432"
+    volumes:
+      - igreen_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U igreen -d igreen_tasks"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  igreen_postgres_data:
+    driver: local
