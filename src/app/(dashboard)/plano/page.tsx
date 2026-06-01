@@ -160,7 +160,7 @@ export default function PlanoPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {plans.map((plan) => (
-              <div key={plan.id} className={`zoom-in rounded-xl border p-5 group ${isOverdue(plan) ? "border-red-900/50" : "border-[#2a2a2a]"}`}>
+              <div key={plan.id} className={`zoom-in rounded-xl border bg-[#111] p-5 group ${isOverdue(plan) ? "border-red-900/50" : "border-[#2a2a2a]"}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
