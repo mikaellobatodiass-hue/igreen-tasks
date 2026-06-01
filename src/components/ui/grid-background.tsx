@@ -3,16 +3,19 @@
 import { useRef, useCallback } from "react"
 
 export function GridBackground({ children }: { children: React.ReactNode }) {
-  const overlayRef = useRef<HTMLDivElement>(null)
+  const neonGridRef = useRef<HTMLDivElement>(null)
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!overlayRef.current) return
-    overlayRef.current.style.background = `radial-gradient(circle 500px at ${e.clientX}px ${e.clientY}px, rgba(0,255,135,0.10) 0%, rgba(0,255,135,0.04) 30%, transparent 70%)`
+    if (!neonGridRef.current) return
+    const mask = `radial-gradient(ellipse 200px 200px at ${e.clientX}px ${e.clientY}px, black 0%, transparent 100%)`
+    neonGridRef.current.style.maskImage = mask
+    neonGridRef.current.style.webkitMaskImage = mask
   }, [])
 
   const handleMouseLeave = useCallback(() => {
-    if (!overlayRef.current) return
-    overlayRef.current.style.background = "transparent"
+    if (!neonGridRef.current) return
+    neonGridRef.current.style.maskImage = "none"
+    neonGridRef.current.style.webkitMaskImage = "none"
   }, [])
 
   return (
@@ -22,20 +25,29 @@ export function GridBackground({ children }: { children: React.ReactNode }) {
       onMouseLeave={handleMouseLeave}
       style={{
         backgroundColor: "#050505",
+        // Grade base — linhas sutis sempre visíveis
         backgroundImage: `
-          linear-gradient(to right, rgba(0,255,135,0.055) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(0,255,135,0.055) 1px, transparent 1px)
+          linear-gradient(to right, rgba(0,255,135,0.045) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0,255,135,0.045) 1px, transparent 1px)
         `,
         backgroundSize: "44px 44px",
       }}
     >
-      {/* Spotlight neon — segue o mouse */}
+      {/* Grade neon intensa — visível APENAS nas linhas dentro da máscara */}
       <div
-        ref={overlayRef}
-        className="pointer-events-none fixed inset-0 z-0 transition-[background] duration-75"
+        ref={neonGridRef}
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(0,255,135,0.85) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0,255,135,0.85) 1px, transparent 1px)
+          `,
+          backgroundSize: "44px 44px",
+          maskImage: "none",
+          WebkitMaskImage: "none",
+        }}
       />
 
-      {/* Conteúdo acima do spotlight */}
       <div className="relative z-10">{children}</div>
     </div>
   )
